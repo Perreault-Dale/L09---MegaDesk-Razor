@@ -1,0 +1,51 @@
+﻿@{
+    Layout = "~/_Layout1.cshtml";
+    Page.Title = "View All Orders";
+
+    var searchCommand = "SELECT * FROM deskorder";
+    var searchCriteria = "";
+
+    if (!Request.QueryString["custname"].IsEmpty())
+    {
+        searchCommand = "SELECT * FROM deskorder WHERE custname LIKE @0";
+        searchCriteria = "%" + Request.QueryString["custname"] + "%";
+    }
+    
+    var db = Database.Open("megadesk");
+    var selectedData = db.Query(searchCommand, searchCriteria);
+    var grid = new WebGrid(source: selectedData, rowsPerPage: 5);
+}
+<h2>Here is the current backlog of orders.</h2>
+<form method="get">
+    <fieldset>
+        <legend>Search Terms</legend>
+        <table>
+            <tr>
+                <td><label for="custname">Customer Name:</label></td>
+                <td><input type="text" name="custname" value="" /></td>
+                <td><input type="submit" value="Submit" /></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </fieldset>
+</form>
+<div>
+    @grid.GetHtml(
+    tableStyle: "grid",
+    headerStyle: "head",
+    alternatingRowStyle: "alt",
+    columns: grid.Columns(
+        grid.Column(format: @<a href="~/EditOrder?id=@item.id">Edit</a>),
+        grid.Column(format: @<a href="~/DeleteOrder?id=@item.id">Delete</a>),
+        grid.Column("custname", "Customer Name", canSort: true),
+        grid.Column("width", "Width", canSort: false),
+        grid.Column("depth", "Depth", canSort: false),
+        grid.Column("drawers", "Drawers", canSort: false),
+        grid.Column("days", "Delivery Days", canSort: false),
+        grid.Column("price", "Price", format: @<text>$@item.price</text>, canSort: false),
+        grid.Column("orderdate", "Order Date", canSort: true)
+        )
+    )
+</div>

@@ -1,0 +1,184 @@
+﻿@{
+    Layout = "~/_Layout1.cshtml";
+    Page.Title = "Delete Order";
+
+    var id = 0;
+    var custname = "";
+    var width = 0;
+    var depth = 0;
+    var drawers = 0;
+    var rush = "";
+    var days = 0;
+    var material = 0;
+    var price = 0;
+
+    List<SelectListItem> listMaterials = new List<SelectListItem>();
+    listMaterials.Add(new SelectListItem
+    {
+        Text = "Pine",
+        Value = "100"
+    });
+    listMaterials.Add(new SelectListItem
+    {
+        Text = "Laminate",
+        Value = "100"
+    });
+    listMaterials.Add(new SelectListItem
+    {
+        Text = "Veneer",
+        Value = "125"
+    });
+    listMaterials.Add(new SelectListItem
+    {
+        Text = "Oak",
+        Value = "200"
+    });
+    listMaterials.Add(new SelectListItem
+    {
+        Text = "Rosewood",
+        Value = "300"
+    });
+
+    List<SelectListItem> listRushDays = new List<SelectListItem>();
+    listRushDays.Add(new SelectListItem
+    {
+        Text = "3",
+        Value = "3"
+    });
+    listRushDays.Add(new SelectListItem
+    {
+        Text = "5",
+        Value = "5"
+    });
+    listRushDays.Add(new SelectListItem
+    {
+        Text = "7",
+        Value = "7"
+    });
+
+    List<SelectListItem> listDrawers = new List<SelectListItem>();
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "0",
+        Value = "0"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "1",
+        Value = "1"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "2",
+        Value = "2"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "3",
+        Value = "3"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "4",
+        Value = "4"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "5",
+        Value = "5"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "6",
+        Value = "6"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "7",
+        Value = "7"
+    });
+
+    if (!IsPost)
+    {
+        if (!Request.QueryString["id"].IsEmpty() && Request.QueryString["id"].IsInt())
+        {
+            id = Request.QueryString["id"].AsInt();
+            var db = Database.Open("megadesk");
+            var getCommand = "SELECT * FROM deskorder WHERE id=@0";
+            var row = db.QuerySingle(getCommand, id);
+            if (row != null)
+            {
+                custname = row.custname;
+                width = row.width;
+                depth = row.depth;
+                drawers = row.drawers;
+                rush = row.rush;
+                days = row.days;
+                material = row.material;
+            }
+            else
+            {
+                Validation.AddFormError("No order found with that ID.");
+            }
+
+        }
+        else
+        {
+            Validation.AddFormError("You did not select an order.");
+        }
+    }
+
+    if (IsPost && !Request["deleteButton"].IsEmpty())
+    {
+        id = Request.Form["id"].AsInt();
+        if (Validation.IsValid())
+        {
+            var db = Database.Open("megadesk");
+            var deleteCommand = "DELETE FROM deskorder WHERE id=@0";
+            db.Execute(deleteCommand, id);
+
+            Response.Redirect("~/ViewOrders");
+        }
+    }
+}
+<h2>Customer cancelled? No worries, click Submit to confirm.</h2>
+
+@Html.ValidationSummary()
+<form method="post">
+    <fieldset>
+        <legend>Order Details</legend>
+        <input type="hidden" name="id" value=@id />
+        <table>
+            <tr>
+                <td><label for="custname">Customer Name:</label></td>
+                <td><input type="text" name="custname" value=@custname /></td>
+                <td>@Html.ValidationMessage("custname")</td>
+            </tr>
+            <tr>
+                <td><label for="depth">Depth:</label></td>
+                <td><input type="text" name="depth" value=@depth /></td>
+                <td>@Html.ValidationMessage("depth")</td>
+                <td><label for="width">Width:</label></td>
+                <td><input type="text" name="width" value=@width /></td>
+                <td>@Html.ValidationMessage("width")</td>
+            </tr>
+            <tr>
+                <td><label for="drawers">Drawers:</label></td>
+                <td>@Html.DropDownList("drawers", "--", listDrawers, drawers, null)</td>
+                <td>@Html.ValidationMessage("drawers")</td>
+            </tr>
+            <tr>
+                <td><label for="rush">Rush Order:</label></td>
+                <td>@Html.CheckBox("rush", rush == "on")</td>
+                <td>@Html.DropDownList("days", "--", listRushDays, days, null)</td>
+            </tr>
+            <tr>
+                <td><label for="material">Surface Material:</label></td>
+                <td>@Html.DropDownList("material", "------------", listMaterials, material, null)</td>
+                <td>@Html.ValidationMessage("material")</td>
+            </tr>
+            <tr><td></td><td><input type="submit" name="deleteButton" value="Delete" /><input type="button" value="Cancel" onclick="@("window.location.href='ViewOrders.cshtml'");" /></td></tr>
+        </table>
+
+    </fieldset>
+</form>

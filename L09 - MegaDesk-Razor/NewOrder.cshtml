@@ -1,0 +1,241 @@
+﻿@{
+    Layout = "~/_Layout1.cshtml";
+    Page.Title = "Add New Order";
+
+    Validation.RequireField("custname", "You must enter the customer's name.");
+    Validation.RequireField("width", "You must enter the desk's width.");
+    Validation.RequireField("depth", "You must enter the desk's depth.");
+    Validation.RequireField("drawers", "You must select the number of drawers.");
+    Validation.RequireField("material", "You must select a surface material.");
+
+    List<SelectListItem> listMaterials = new List<SelectListItem>();
+    listMaterials.Add(new SelectListItem
+    {
+        Text = "Pine",
+        Value = "100"
+    });
+    listMaterials.Add(new SelectListItem
+    {
+        Text = "Laminate",
+        Value = "100"
+    });
+    listMaterials.Add(new SelectListItem
+    {
+        Text = "Veneer",
+        Value = "125"
+    });
+    listMaterials.Add(new SelectListItem
+    {
+        Text = "Oak",
+        Value = "200"
+    });
+    listMaterials.Add(new SelectListItem
+    {
+        Text = "Rosewood",
+        Value = "300"
+    });
+
+    List<SelectListItem> listRushDays = new List<SelectListItem>();
+    listRushDays.Add(new SelectListItem
+    {
+        Text = "3",
+        Value = "3"
+    });
+    listRushDays.Add(new SelectListItem
+    {
+        Text = "5",
+        Value = "5"
+    });
+    listRushDays.Add(new SelectListItem
+    {
+        Text = "7",
+        Value = "7"
+    });
+
+    List<SelectListItem> listDrawers = new List<SelectListItem>();
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "0",
+        Value = "0"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "1",
+        Value = "1"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "2",
+        Value = "2"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "3",
+        Value = "3"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "4",
+        Value = "4"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "5",
+        Value = "5"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "6",
+        Value = "6"
+    });
+    listDrawers.Add(new SelectListItem
+    {
+        Text = "7",
+        Value = "7"
+    });
+
+    const int MINWIDTH = 24;
+    const int MAXWIDTH = 96;
+    const int MINDEPTH = 12;
+    const int MAXDEPTH = 48;
+    const int BASEPRICE = 200;
+    const int BIGAREA = 2000;
+    const int SMALLAREA = 1000;
+
+    Validation.Add("width", Validator.Range(MINWIDTH, MAXWIDTH, "Width must be between " + MINWIDTH + " and " + MAXWIDTH + "."));
+    Validation.Add("depth", Validator.Range(MINDEPTH, MAXDEPTH, "Depth must be between " + MINDEPTH + " and " + MAXDEPTH + "."));
+    Validation.Add("width", Validator.Integer("Width must be an integer."));
+    Validation.Add("depth", Validator.Integer("Depth must be an integer."));
+
+    var custname = "";
+    var width = 0;
+    var depth = 0;
+    var drawers = 0;
+    var rush = "";
+    var days = 0;
+    var material = 0;
+    var price = 0;
+
+    if (IsPost && Validation.IsValid())
+    {
+        custname = Request.Form["custname"];
+        width = Request.Form["width"].AsInt();
+        depth = Request.Form["depth"].AsInt();
+        drawers = Request.Form["drawers"].AsInt();
+        rush = Request.Form["rush"];
+        material = Request.Form["material"].AsInt();
+
+        if (rush != "on")
+        {
+            days = 14;
+        }
+        else
+        {
+            days = Request.Form["days"].AsInt();
+        }
+
+        var area = width * depth;
+        var sizecharge = 0;
+        var rushprice = 0;
+        if (area < SMALLAREA)
+        {
+            sizecharge = 0;
+        }
+        else
+        {
+            sizecharge = area - SMALLAREA;
+        }
+        if (days == 3)
+        {
+            if (area < SMALLAREA)
+            {
+                rushprice = 60;
+            }
+            else if (area > BIGAREA)
+            {
+                rushprice = 80;
+            }
+            else
+            {
+                rushprice = 70;
+            }
+        }
+        else if (days == 5)
+        {
+            if (area < SMALLAREA)
+            {
+                rushprice = 40;
+            }
+            else if (area > BIGAREA)
+            {
+                rushprice = 60;
+            }
+            else
+            {
+                rushprice = 50;
+            }
+        }
+        else if (days == 7)
+        {
+            if (area < SMALLAREA)
+            {
+                rushprice = 30;
+            }
+            else if (area > BIGAREA)
+            {
+                rushprice = 35;
+            }
+            else
+            {
+                rushprice = 40;
+            }
+        }
+        price = BASEPRICE + sizecharge + material + (50 * drawers) + rushprice;
+
+
+        var db = Database.Open("megadesk");
+        var insertCommand = "INSERT INTO deskorder (custname,width,depth,drawers,rush,days,material,price,orderdate) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8)";
+        db.Execute(insertCommand, custname, width, depth, drawers, rush, days, material, price, DateTime.Now);
+
+        Response.Redirect("~/ViewOrders");
+    }
+}
+<h2>Document all of the specifics for the order. All fields are required.</h2>
+@Html.ValidationSummary()
+<form method="post">
+    <fieldset>
+        <legend>Order Details</legend>
+        <table>
+            <tr>
+                <td><label for="custname">Customer Name:</label></td>
+                <td><input type="text" name="custname" value=@Request.Form["custname"] /></td>
+                <td>@Html.ValidationMessage("custname")</td>
+            </tr>
+            <tr>
+                <td><label for="depth">Depth:</label></td>
+                <td><input type="text" name="depth" value=@Request.Form["depth"] /></td>
+                <td>@Html.ValidationMessage("depth")</td>
+                <td><label for="width">Width:</label></td>
+                <td><input type="text" name="width" value=@Request.Form["width"] /></td>
+                <td>@Html.ValidationMessage("width")</td>
+            </tr>
+            <tr>
+                <td><label for="drawers">Drawers:</label></td>
+                <td>@Html.DropDownList("drawers","--",listDrawers,Request.Form["drawers"],null)</td>
+                <td>@Html.ValidationMessage("drawers")</td>
+            </tr>
+            <tr>
+                <td><label for="rush">Rush Order:</label></td>
+                <td>@Html.CheckBox("rush",Request.Form["rush"] == "on")</td>
+                <td>@Html.DropDownList("days", "--", listRushDays, Request.Form["days"],null)</td>
+            </tr>
+            <tr>
+                <td><label for="material">Surface Material:</label></td>
+                <td>@Html.DropDownList("material", "------------", listMaterials, Request.Form["material"],null)</td>
+                <td>@Html.ValidationMessage("material")</td>
+            </tr>
+            <tr><td></td><td><input type="submit" value="Submit" /><input type="button" value="Cancel" onclick="@("window.location.href='ViewOrders.cshtml'");" /></td><td></td></tr>
+        </table>
+
+    </fieldset>
+</form>

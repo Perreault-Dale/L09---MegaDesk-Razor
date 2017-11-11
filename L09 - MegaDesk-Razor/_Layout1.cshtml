@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>@Page.Title</title>
+    <link href="~/Styles/megadesk.css" rel="stylesheet" type="text/css" />
+    @RenderSection("head", required: false)
+</head>
+<body>
+    <header>
+        <h1>Megadesk 3.0</h1>
+        <div id="imgbucket">
+            <img src="~/Images/Megadesk.jpg" /><img src="~/Images/Megadesk2.jpg" />
+        </div>
+    </header>
+    <nav>
+        <table>
+            <tr>
+                <td><a href="~/Welcome.cshtml">Welcome</a></td>
+                <td><a href="~/ViewOrders.cshtml">View All</a></td>
+                <td><a href="~/NewOrder.cshtml">Add</a></td>
+            </tr>
+            <tr></tr>
+            <tr></tr>
+        </table>
+    </nav>
+    <main>
+        @RenderBody()
+    </main>
+    <footer>
+        &copy; @DateTime.Now.Year Megadesk
+    </footer>
+</body>
+</html>
